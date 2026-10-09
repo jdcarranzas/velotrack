@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: talentms
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/talentms}
+    username: ${SPRING_DATASOURCE_USERNAME:talentms}
+    password: ${SPRING_DATASOURCE_PASSWORD:talentms}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+  cloud:
+    gcp:
+      # NOTE: literal defaults (no ${} placeholders) on purpose:
+      # CloudSqlEnvironmentPostProcessor runs before placeholder resolution,
+      # so placeholders here break even local/H2 test boots. Env vars with the
+      # same names (e.g. SPRING_CLOUD_GCP_SQL_ENABLED) still override these via
+      # Spring Boot relaxed binding without needing placeholders.
+      sql:
+        enabled: false
+        database-name: talentms
+        instance-connection-name:
+  sql:
+    init:
+      mode: never
+
+server:
+  port: ${PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+
+info:
+  app:
+    name: talentms
+    version: 0.0.1-SNAPSHOT

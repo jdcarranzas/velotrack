@@ -1,0 +1,721 @@
+openapi: 3.0.3
+info:
+  title: TalentMS API
+  description: API for managing talents and skaters.
+  version: 1.0.0
+paths:
+  /api/skaters:
+    post:
+      summary: Register a new skater
+      operationId: registerSkater
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkaterRegistrationRequest'
+      responses:
+        '201':
+          description: Skater registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkaterResponse'
+        '400':
+          description: Bad Request
+  /api/skaters:
+    get:
+      summary: Get skaters by team, scoped to requesting coach access (HU4)
+      operationId: getSkatersByTeamQuery
+      parameters:
+        - name: teamId
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: coachId
+          in: query
+          required: false
+          description: Requesting coach id; when present, only teams assigned to this coach return data (empty otherwise)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of skaters (empty when the coach has no access to the team)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SkaterResponse'
+  /api/skaters/{teamId}:
+    get:
+      summary: Get skaters by team ID (optionally scoped to a coach)
+      operationId: getSkatersByTeam
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: coachId
+          in: query
+          required: false
+          description: Requesting coach id; when present, returns empty unless the coach is assigned to this team
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of skaters (empty when the coach has no access to the team)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SkaterResponse'
+  /api/coaches:
+    post:
+      summary: Register a new coach
+      operationId: registerCoach
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoachRegistrationRequest'
+      responses:
+        '201':
+          description: Coach registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoachResponse'
+        '400':
+          description: Bad Request - at least one team assignment is required
+  /api/coaches/{id}:
+    get:
+      summary: Retrieve coach profile
+      operationId: getCoachById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Coach profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoachResponse'
+        '404':
+          description: Coach not found
+  /api/coaches/{id}/teams:
+    put:
+      summary: Update coach team assignments (HU4 - supports full revocation with empty list)
+      operationId: assignTeams
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: X-Admin-Id
+          in: header
+          required: false
+          description: Id of the administrator performing the change (recorded in the audit log)
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+      responses:
+        '200':
+          description: Team assignments updated (empty array revokes all access)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoachResponse'
+        '400':
+          description: Bad Request - unknown/inactive team or unknown performer
+        '404':
+          description: Coach not found
+  /api/coaches/{id}/access:
+    get:
+      summary: Get effective access for a coach (assigned teams + derived venues)
+      operationId: getCoachAccess
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Effective coach access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoachAccessResponse'
+        '404':
+          description: Coach not found
+  /api/coaches/{id}/access-history:
+    get:
+      summary: Get audit history of coach access changes (newest first)
+      operationId: getAccessHistory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Audit history entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccessAuditEntry'
+        '404':
+          description: Coach not found
+  /api/venues:
+    post:
+      summary: Create a new venue
+      operationId: createVenue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VenueRequest'
+      responses:
+        '201':
+          description: Venue created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VenueResponse'
+        '400':
+          description: Bad Request - blank name
+        '404':
+          description: Organization not found
+    get:
+      summary: List venues filtered by organization
+      operationId: listVenues
+      parameters:
+        - name: organizationId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: activeOnly
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: List of venues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VenueResponse'
+  /api/venues/{id}:
+    get:
+      summary: Retrieve venue by id
+      operationId: getVenueById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Venue details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VenueResponse'
+        '404':
+          description: Venue not found
+    put:
+      summary: Update venue name and description
+      operationId: updateVenue
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VenueRequest'
+      responses:
+        '200':
+          description: Venue updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VenueResponse'
+        '400':
+          description: Bad Request
+        '404':
+          description: Venue not found
+  /api/venues/{id}/status:
+    patch:
+      summary: Deactivate or reactivate a venue
+      operationId: updateVenueStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusUpdateRequest'
+      responses:
+        '200':
+          description: Venue status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VenueResponse'
+        '404':
+          description: Venue not found
+  /api/teams:
+    post:
+      summary: Create a new team
+      operationId: createTeam
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamRequest'
+      responses:
+        '201':
+          description: Team created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamResponse'
+        '400':
+          description: Bad Request - unknown or inactive venue
+        '404':
+          description: Venue not found
+    get:
+      summary: List teams filtered by venue
+      operationId: listTeams
+      parameters:
+        - name: venueId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: activeOnly
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: List of teams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeamResponse'
+  /api/teams/{id}:
+    get:
+      summary: Retrieve team by id
+      operationId: getTeamById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Team details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamResponse'
+        '404':
+          description: Team not found
+    put:
+      summary: Update team name and description
+      operationId: updateTeam
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamRequest'
+      responses:
+        '200':
+          description: Team updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamResponse'
+        '400':
+          description: Bad Request
+        '404':
+          description: Team not found
+  /api/teams/{id}/status:
+    patch:
+      summary: Deactivate or reactivate a team
+      operationId: updateTeamStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusUpdateRequest'
+      responses:
+        '200':
+          description: Team status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamResponse'
+        '404':
+          description: Team not found
+  /api/categories:
+    post:
+      summary: Create a new category
+      operationId: createCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+      responses:
+        '201':
+          description: Category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '400':
+          description: Bad Request - blank name
+    get:
+      summary: List categories
+      operationId: listCategories
+      parameters:
+        - name: activeOnly
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryResponse'
+  /api/categories/{id}:
+    get:
+      summary: Retrieve category by id
+      operationId: getCategoryById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Category details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '404':
+          description: Category not found
+    put:
+      summary: Update category
+      operationId: updateCategory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+      responses:
+        '200':
+          description: Category updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '400':
+          description: Bad Request
+        '404':
+          description: Category not found
+  /api/categories/{id}/status:
+    patch:
+      summary: Deactivate or reactivate a category
+      operationId: updateCategoryStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusUpdateRequest'
+      responses:
+        '200':
+          description: Category status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '404':
+          description: Category not found
+components:
+  schemas:
+    SkaterRegistrationRequest:
+      type: object
+      required:
+        - name
+        - idNumber
+        - dateOfBirth
+        - categoryId
+        - teamId
+        - venueId
+      properties:
+        name:
+          type: string
+        idNumber:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        categoryId:
+          type: integer
+        teamId:
+          type: integer
+        venueId:
+          type: integer
+    SkaterResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        idNumber:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        categoryId:
+          type: integer
+        teamId:
+          type: integer
+        venueId:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+    CoachRegistrationRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - teamIds
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        teamIds:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+    CoachResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive]
+        teamIds:
+          type: array
+          items:
+            type: integer
+    CoachAccessResponse:
+      type: object
+      properties:
+        coachId:
+          type: integer
+        teamIds:
+          type: array
+          items:
+            type: integer
+        venueIds:
+          type: array
+          description: Venue ids derived from the assigned teams
+          items:
+            type: integer
+    AccessAuditEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        coachId:
+          type: integer
+        teamId:
+          type: integer
+          nullable: true
+        venueId:
+          type: integer
+          nullable: true
+        actionType:
+          type: string
+          enum: [ASSIGNED, REMOVED]
+        performedById:
+          type: integer
+          nullable: true
+        changedAt:
+          type: string
+          format: date-time
+    VenueRequest:
+      type: object
+      required:
+        - name
+        - organizationId
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        organizationId:
+          type: integer
+    VenueResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        organizationId:
+          type: integer
+        isActive:
+          type: boolean
+    TeamRequest:
+      type: object
+      required:
+        - name
+        - venueId
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        venueId:
+          type: integer
+    TeamResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        venueId:
+          type: integer
+        isActive:
+          type: boolean
+    CategoryRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+    CategoryResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        isActive:
+          type: boolean
+    StatusUpdateRequest:
+      type: object
+      required:
+        - active
+      properties:
+        active:
+          type: boolean
