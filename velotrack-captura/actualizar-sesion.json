@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "athleteId": "33333333-3333-3333-3333-333333333333",
+  "sessionDate": "2026-09-27T10:00:00-05:00",
+  "status": "COMPLETADA",
+  "technical": {    "startSpeedKmh": 20,
+    "maxSpeedKmh": 40,
+    "averageSpeedKmh": 30,
+    "completedLaps": 2,
+    "laps": [
+      {"timeSeconds": 30.5, "splitSeconds": [15, 15.5]},
+      {"timeSeconds": 31, "splitSeconds": [15, 16]}
+    ],
+    "intervals": [{"fromSecond": 0, "toSecond": 62, "completedLaps": 2}]
+  },
+  "physical": {"resistanceScore": 8, "recoverySeconds": 120},
+  "observations": "Buen ritmo. Viento fuerte durante la segunda vuelta."
+}
