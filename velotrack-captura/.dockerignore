@@ -1,0 +1,7 @@
+target
+.cache
+.git
+.env
+backups
+docs
+infra

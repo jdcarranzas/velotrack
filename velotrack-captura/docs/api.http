@@ -1,0 +1,40 @@
+@base = http://localhost:8080
+# Sustituir el valor por base64 de usuario:contraseÃ±a para el cliente REST utilizado.
+@authorization = Basic REEMPLAZAR_BASE64
+@sessionId = REEMPLAZAR_UUID
+
+### Salud (sin autenticaciÃ³n)
+GET {{base}}/actuator/health/readiness
+
+### Crear sesiÃ³n completa
+POST {{base}}/api/v1/sessions
+Authorization: {{authorization}}
+Content-Type: application/json
+
+< ./sesion-completa.json
+
+### Crear borrador
+POST {{base}}/api/v1/sessions
+Authorization: {{authorization}}
+Content-Type: application/json
+
+< ./borrador.json
+
+### Consultar
+GET {{base}}/api/v1/sessions/{{sessionId}}
+Authorization: {{authorization}}
+
+### Editar observaciones (usar la version de la Ãºltima consulta)
+PATCH {{base}}/api/v1/sessions/{{sessionId}}/observations
+Authorization: {{authorization}}
+Content-Type: application/json
+
+{"version":0,"observations":"Mejor recuperaciÃ³n al final de la sesiÃ³n."}
+
+### Historial
+GET {{base}}/api/v1/athletes/33333333-3333-3333-3333-333333333333/sessions?from=2026-09-01T00:00:00Z&to=2026-10-01T00:00:00Z&limit=50&offset=0
+Authorization: {{authorization}}
+
+### Agenda del entrenador (team=true para equipo)
+GET {{base}}/api/v1/agenda?from=2026-09-01T00:00:00Z&to=2026-10-01T00:00:00Z&team=false
+Authorization: {{authorization}}

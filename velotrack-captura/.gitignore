@@ -1,0 +1,9 @@
+/target/
+/.cache/
+/.env
+/backups/
+*.log
+.idea/
+*.iml
+
+/captura.zip
