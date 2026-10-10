@@ -1,0 +1,44 @@
+# Build -> Artifact Registry -> deploy a Cloud Run.
+# Ejecutar desde velotrack-gateway/:
+#   gcloud builds submit --config cloudbuild.yaml .
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$BUILD_ID
+      - .
+
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$BUILD_ID
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$BUILD_ID
+      - --region=${_REGION}
+      - --platform=managed
+      - --port=8080
+      - --allow-unauthenticated
+      - --set-secrets=TALENTMS_URL=${_TALENTMS_URL_SECRET}:latest,CAPTURA_URL=${_CAPTURA_URL_SECRET}:latest
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$BUILD_ID
+
+substitutions:
+  _REGION: us-east1
+  _REPOSITORY: velotrack
+  _SERVICE: velotrack-gateway
+  _TALENTMS_URL_SECRET: talentms-url
+  _CAPTURA_URL_SECRET: captura-url
+
+options:
+  logging: CLOUD_LOGGING_ONLY
