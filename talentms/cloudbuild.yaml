@@ -1,0 +1,45 @@
+# Cloud Build: build image -> push to Artifact Registry -> deploy to Cloud Run
+# Trigger: gcloud builds submit --config deploy/gcp/cloudbuild.yaml
+# Substitutions: _REGION, _REPO=talentms, _SERVICE=talentms, _CLOUDSQL_INSTANCE
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:latest
+      - talentms/
+    id: build-image
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - --all-tags
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}
+    id: push-image
+    waitFor: [build-image]
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA
+      - --region=${_REGION}
+      - --platform=managed
+      - --add-cloudsql-instances=${_CLOUDSQL_INSTANCE}
+      - --set-env-vars=SPRING_CLOUD_GCP_SQL_ENABLED=true,SPRING_JPA_HIBERNATE_DDL_AUTO=validate,SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/talentms
+      - --update-secrets=SPRING_DATASOURCE_PASSWORD=talentms-db-password:latest,SPRING_DATASOURCE_USERNAME=talentms-db-user:latest
+      - --allow-unauthenticated
+    id: deploy-run
+    waitFor: [push-image]
+substitutions:
+  _REGION: us-central1
+  _REPO: talentms
+  _SERVICE: talentms
+  _CLOUDSQL_INSTANCE: PROJECT_ID:REGION:INSTANCE_NAME
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:latest
+options:
+  logging: CLOUD_LOGGING_ONLY
