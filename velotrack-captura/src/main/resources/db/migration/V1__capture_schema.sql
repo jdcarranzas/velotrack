@@ -1,5 +1,3 @@
-CREATE EXTENSION IF NOT EXISTS timescaledb;
-
 CREATE TABLE training_session (
     id UUID PRIMARY KEY,
     athlete_id UUID NOT NULL,
@@ -29,5 +27,4 @@ CREATE TABLE session_metrics (
     recovery_seconds INTEGER CHECK (recovery_seconds BETWEEN 0 AND 3600),
     PRIMARY KEY (session_id, measured_at)
 );
-SELECT create_hypertable('session_metrics', by_range('measured_at', INTERVAL '1 month'));
 -- No se elimina ni comprime automáticamente: borradores y observaciones siguen editables.

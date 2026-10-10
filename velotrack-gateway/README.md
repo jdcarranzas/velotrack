@@ -1,6 +1,6 @@
 # velotrack-gateway
 
-Gateway Spring Cloud (WebFlux) que solo enruta. Sin autenticación ni autorización propia; el header `Authorization` pasa intacto (captura exige HTTP Basic).
+Gateway Spring Cloud (WebFlux) que solo enruta. Sin autenticación ni autorización propia; ni talentms ni captura exigen credenciales, así que todas las rutas son públicas.
 
 ## Puertos locales
 
@@ -62,4 +62,19 @@ Desplegar:
 gcloud builds submit --config cloudbuild.yaml --substitutions=_REGION=us-east1 .
 ```
 
-Nota: el servicio queda con `--allow-unauthenticated`. El gateway no tiene auth y talentms tampoco, así que sus endpoints quedarán públicos. Quitar el flag y usar IAM/IAP si no se desea.
+Nota: el servicio queda con `--allow-unauthenticated`. Ni el gateway, ni talentms, ni captura tienen auth, así que sus endpoints quedan públicos. Quitar el flag y usar IAM/IAP si no se desea.
+
+### Cambiar la URL de un servicio destino
+
+Cloud Run resuelve `:latest` de un secreto solo cuando arranca una instancia. Tras agregar una versión nueva a `talentms-url` o `captura-url`, forzar una revisión nueva (sin rebuild):
+
+```
+gcloud run services update velotrack-gateway --region=us-east1 --update-labels=redeploy=$(date +%Y%m%d%H%M%S)
+```
+
+Verificar:
+
+```
+curl https://<url-gateway>/captura/actuator/health/readiness
+curl https://<url-gateway>/talentms/actuator/health/readiness
+```

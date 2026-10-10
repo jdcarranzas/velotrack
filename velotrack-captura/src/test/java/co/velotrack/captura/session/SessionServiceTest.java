@@ -21,8 +21,7 @@ class SessionServiceTest {
     private SessionService service;
 
     @BeforeEach void setup() {
-        service = new SessionService(repository, new PrototypeAccess(
-                "entrenador", "test-only-password-123", coach, team, Set.of(athlete)));
+        service = new SessionService(repository, new PrototypeAccess(coach, team, Set.of(athlete)));
     }
 
     private TrainingSession session(UUID id, UUID athleteId, UUID teamId) {
