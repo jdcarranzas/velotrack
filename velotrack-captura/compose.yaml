@@ -25,6 +25,7 @@ services:
       db:
         condition: service_healthy
     environment:
+      PORT: 8080
       DB_URL: jdbc:postgresql://db:5432/velotrack
       DB_USER: velotrack
       DB_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD en .env}
@@ -34,7 +35,7 @@ services:
       TEAM_ID: ${TEAM_ID:-22222222-2222-2222-2222-222222222222}
       ATHLETE_IDS: ${ATHLETE_IDS:-33333333-3333-3333-3333-333333333333}
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:${CAPTURE_HOST_PORT:-8082}:8080"
     mem_limit: 1g
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8080/actuator/health/readiness || exit 1"]

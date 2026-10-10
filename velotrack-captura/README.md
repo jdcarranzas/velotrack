@@ -12,23 +12,23 @@ Requiere Docker Desktop con contenedores Linux y Docker Compose v2.
 
 ```powershell
 docker compose up -d --build --wait
-curl.exe http://localhost:8080/actuator/health/readiness
+curl.exe http://localhost:8082/actuator/health/readiness
 ```
 
-La API escucha en http://localhost:8080. El usuario por defecto es `entrenador`; la contraseña es la que configuraste. El puerto de la BD no se publica. Los datos sobreviven a `docker compose down`; no usar `down -v` si se desea conservarlos.
+La API escucha en http://localhost:8082. El usuario por defecto es `entrenador`; la contraseña es la que configuraste. El puerto de la BD no se publica. Los datos sobreviven a `docker compose down`; no usar `down -v` si se desea conservarlos.
 
 ## Probar HU03, HU04 y HU05
 
 Crear una sesión con métricas, indicadores y observaciones (curl solicitará la contraseña):
 
 ```powershell
-curl.exe -u entrenador -H "Content-Type: application/json" --data-binary "@docs/sesion-completa.json" http://localhost:8080/api/v1/sessions
+curl.exe -u entrenador -H "Content-Type: application/json" --data-binary "@docs/sesion-completa.json" http://localhost:8082/api/v1/sessions
 ```
 
 Crear un borrador:
 
 ```powershell
-curl.exe -u entrenador -H "Content-Type: application/json" --data-binary "@docs/borrador.json" http://localhost:8080/api/v1/sessions
+curl.exe -u entrenador -H "Content-Type: application/json" --data-binary "@docs/borrador.json" http://localhost:8082/api/v1/sessions
 ```
 
 Conservar el `id` y la `version` devueltos. Para completar el borrador, enviar el cuerpo completo del ejemplo a `PUT /api/v1/sessions/{id}`, añadiendo `"version":0` (o la versión actual). PUT reemplaza todo el contenido editable; omitir un dato opcional lo limpia. El atleta no se puede cambiar.
