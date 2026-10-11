@@ -1,0 +1,56 @@
+# Cloud Build: build image -> push to Artifact Registry -> deploy to Cloud Run
+# Ejecutar desde la raíz del repositorio:
+#   gcloud builds submit --config velotrack-portal/cloudbuild.yaml .
+# GATEWAY_URL y NEXT_PUBLIC_COACH_ID se fijan al construir la imagen: para
+# cambiarlos hay que volver a desplegar con otras substitutions.
+steps:
+  - id: build-image
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --build-arg=GATEWAY_URL=${_GATEWAY_URL}
+      - --build-arg=NEXT_PUBLIC_COACH_ID=${_COACH_ID}
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:latest
+      - velotrack-portal/
+
+  - id: push-image
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - --all-tags
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}
+    waitFor: [build-image]
+
+  - id: deploy-run
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID
+      - --region=${_REGION}
+      - --platform=managed
+      - --port=8080
+      - --memory=512Mi
+      - --min-instances=0
+      - --max-instances=2
+      - --allow-unauthenticated
+    waitFor: [push-image]
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$BUILD_ID
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:latest
+
+substitutions:
+  _REGION: us-east1
+  _REPO: velotrack
+  _SERVICE: velotrack-portal
+  _GATEWAY_URL: https://velotrack-gateway-732809824488.us-east1.run.app
+  _COACH_ID: "1"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
