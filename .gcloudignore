@@ -1,0 +1,7 @@
+# Archivos que no se suben a Cloud Build (gcloud builds submit desde la raíz).
+# Incluye las reglas de .gitignore y excluye dependencias y builds de Node.
+#!include:.gitignore
+.git
+.gitignore
+node_modules/
+.next/
