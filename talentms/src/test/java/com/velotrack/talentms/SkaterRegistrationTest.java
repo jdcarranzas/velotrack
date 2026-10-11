@@ -1,5 +1,6 @@
 package com.velotrack.talentms;
 
+import com.velotrack.talentms.pubsub.TalentEvents;
 import com.velotrack.talentms.dto.SkaterRegistrationRequest;
 import com.velotrack.talentms.dto.SkaterResponse;
 import com.velotrack.talentms.model.Category;
@@ -50,7 +51,7 @@ class SkaterRegistrationTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         skaterService = new SkaterService(skaterRepository, categoryRepository, teamRepository, venueRepository,
-                coachRepository, coachTeamRepository);
+                coachRepository, coachTeamRepository, mock(TalentEvents.class));
     }
 
     @Test

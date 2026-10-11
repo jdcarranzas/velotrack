@@ -29,6 +29,7 @@ steps:
       - --platform=managed
       - --add-cloudsql-instances=${_CLOUDSQL_INSTANCE}
       - --set-env-vars=SPRING_CLOUD_GCP_SQL_ENABLED=true,SPRING_JPA_HIBERNATE_DDL_AUTO=validate,SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/talentms
+      - --update-env-vars=PUBSUB_ENABLED=true,GCP_PROJECT_ID=$PROJECT_ID
       - --update-secrets=SPRING_DATASOURCE_PASSWORD=talentms-db-password:latest,SPRING_DATASOURCE_USERNAME=talentms-db-user:latest
       - --allow-unauthenticated
     id: deploy-run

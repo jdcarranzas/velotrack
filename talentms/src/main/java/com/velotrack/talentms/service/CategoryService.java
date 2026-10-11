@@ -3,6 +3,7 @@ package com.velotrack.talentms.service;
 import com.velotrack.talentms.dto.CategoryRequest;
 import com.velotrack.talentms.dto.CategoryResponse;
 import com.velotrack.talentms.model.Category;
+import com.velotrack.talentms.pubsub.TalentEvents;
 import com.velotrack.talentms.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final TalentEvents events;
 
     @Transactional
     public CategoryResponse createCategory(CategoryRequest request) {
@@ -30,6 +32,7 @@ public class CategoryService {
                 .isActive(true)
                 .build();
         Category saved = categoryRepository.save(category);
+        events.categorySaved(saved);
         return mapToResponse(saved);
     }
 
@@ -44,6 +47,7 @@ public class CategoryService {
         category.setName(request.getName().trim());
         category.setDescription(request.getDescription());
         Category saved = categoryRepository.save(category);
+        events.categorySaved(saved);
         return mapToResponse(saved);
     }
 
@@ -70,6 +74,7 @@ public class CategoryService {
                         "Category not found with id: " + id));
         category.setIsActive(active);
         Category saved = categoryRepository.save(category);
+        events.categorySaved(saved);
         return mapToResponse(saved);
     }
 

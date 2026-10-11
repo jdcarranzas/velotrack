@@ -1,5 +1,6 @@
 package com.velotrack.talentms.service;
 
+import com.velotrack.talentms.pubsub.TalentEvents;
 import com.velotrack.talentms.dto.CoachRegistrationRequest;
 import com.velotrack.talentms.dto.CoachResponse;
 import com.velotrack.talentms.model.Coach;
@@ -35,7 +36,7 @@ class CoachTeamServiceTest {
     @BeforeEach void setUp() {
         MockitoAnnotations.openMocks(this);
         coachTeamService = new CoachTeamService(coachRepository, coachTeamRepository, teamRepository,
-                accessAuditLogRepository, venueRepository);
+                accessAuditLogRepository, venueRepository, mock(TalentEvents.class));
     }
     @Test void registerCoach_Success_SetsActiveStatus() {
         CoachRegistrationRequest request = CoachRegistrationRequest.builder()

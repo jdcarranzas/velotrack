@@ -4,6 +4,7 @@ import com.velotrack.talentms.dto.TeamRequest;
 import com.velotrack.talentms.dto.TeamResponse;
 import com.velotrack.talentms.model.Team;
 import com.velotrack.talentms.model.Venue;
+import com.velotrack.talentms.pubsub.TalentEvents;
 import com.velotrack.talentms.repository.TeamRepository;
 import com.velotrack.talentms.repository.VenueRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class TeamService {
 
     private final TeamRepository teamRepository;
     private final VenueRepository venueRepository;
+    private final TalentEvents events;
 
     @Transactional
     public TeamResponse createTeam(TeamRequest request) {
@@ -41,6 +43,7 @@ public class TeamService {
                 .isActive(true)
                 .build();
         Team saved = teamRepository.save(team);
+        events.teamSaved(saved);
         return mapToResponse(saved);
     }
 
@@ -55,6 +58,7 @@ public class TeamService {
         team.setName(request.getName().trim());
         team.setDescription(request.getDescription());
         Team saved = teamRepository.save(team);
+        events.teamSaved(saved);
         return mapToResponse(saved);
     }
 
@@ -87,6 +91,7 @@ public class TeamService {
                         "Team not found with id: " + id));
         team.setIsActive(active);
         Team saved = teamRepository.save(team);
+        events.teamSaved(saved);
         return mapToResponse(saved);
     }
 

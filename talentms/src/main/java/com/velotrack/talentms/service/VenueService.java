@@ -4,6 +4,7 @@ import com.velotrack.talentms.dto.VenueRequest;
 import com.velotrack.talentms.dto.VenueResponse;
 import com.velotrack.talentms.model.Organization;
 import com.velotrack.talentms.model.Venue;
+import com.velotrack.talentms.pubsub.TalentEvents;
 import com.velotrack.talentms.repository.OrganizationRepository;
 import com.velotrack.talentms.repository.VenueRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class VenueService {
 
     private final VenueRepository venueRepository;
     private final OrganizationRepository organizationRepository;
+    private final TalentEvents events;
 
     @Transactional
     public VenueResponse createVenue(VenueRequest request) {
@@ -38,6 +40,7 @@ public class VenueService {
                 .isActive(true)
                 .build();
         Venue saved = venueRepository.save(venue);
+        events.venueSaved(saved);
         return mapToResponse(saved);
     }
 
@@ -52,6 +55,7 @@ public class VenueService {
         venue.setName(request.getName().trim());
         venue.setDescription(request.getDescription());
         Venue saved = venueRepository.save(venue);
+        events.venueSaved(saved);
         return mapToResponse(saved);
     }
 
@@ -84,6 +88,7 @@ public class VenueService {
                         "Venue not found with id: " + id));
         venue.setIsActive(active);
         Venue saved = venueRepository.save(venue);
+        events.venueSaved(saved);
         return mapToResponse(saved);
     }
 

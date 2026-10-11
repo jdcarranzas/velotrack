@@ -24,6 +24,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation platform('com.google.cloud:spring-cloud-gcp-dependencies:5.13.1')
     implementation 'com.google.cloud:spring-cloud-gcp-starter-sql-postgresql'
+    implementation 'com.google.cloud:google-cloud-pubsub'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.postgresql:postgresql'
     annotationProcessor 'org.projectlombok:lombok'

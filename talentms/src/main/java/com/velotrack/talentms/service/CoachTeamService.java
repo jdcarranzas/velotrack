@@ -8,6 +8,7 @@ import com.velotrack.talentms.model.AccessAuditLog;
 import com.velotrack.talentms.model.Coach;
 import com.velotrack.talentms.model.CoachTeam;
 import com.velotrack.talentms.model.Team;
+import com.velotrack.talentms.pubsub.TalentEvents;
 import com.velotrack.talentms.repository.AccessAuditLogRepository;
 import com.velotrack.talentms.repository.CoachRepository;
 import com.velotrack.talentms.repository.CoachTeamRepository;
@@ -35,6 +36,7 @@ public class CoachTeamService {
     private final TeamRepository teamRepository;
     private final AccessAuditLogRepository accessAuditLogRepository;
     private final VenueRepository venueRepository;
+    private final TalentEvents events;
 
     @Transactional
     public CoachResponse registerCoach(CoachRegistrationRequest request) {
@@ -71,6 +73,8 @@ public class CoachTeamService {
             coachTeamRepository.save(coachTeam);
         }
 
+        events.coachSaved(savedCoach);
+        events.coachTeamsSaved(savedCoach.getId(), request.getTeamIds());
         return mapToResponse(savedCoach);
     }
 
@@ -151,6 +155,8 @@ public class CoachTeamService {
             writeAuditRow(coach, team, "REMOVED", performedBy);
         }
 
+        events.coachTeamsSaved(coach.getId(), newTeamIds);
+
         return mapToResponse(coach);
     }
 
@@ -224,7 +230,8 @@ public class CoachTeamService {
                 .actionType(actionType)
                 .performedBy(performedBy)
                 .build();
-        accessAuditLogRepository.save(entry);
+        AccessAuditLog saved = accessAuditLogRepository.save(entry);
+        events.accessAuditLogged(saved);
     }
 
     private AccessAuditEntryResponse mapAuditToResponse(AccessAuditLog entry) {

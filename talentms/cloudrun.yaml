@@ -38,6 +38,10 @@ spec:
               value: PROJECT_ID:REGION:INSTANCE_NAME
             - name: SPRING_JPA_HIBERNATE_DDL_AUTO
               value: validate
+            - name: PUBSUB_ENABLED
+              value: "true"
+            - name: GCP_PROJECT_ID
+              value: PROJECT_ID
             - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:

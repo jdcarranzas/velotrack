@@ -7,6 +7,7 @@ import com.velotrack.talentms.model.Coach;
 import com.velotrack.talentms.model.Skater;
 import com.velotrack.talentms.model.Team;
 import com.velotrack.talentms.model.Venue;
+import com.velotrack.talentms.pubsub.TalentEvents;
 import com.velotrack.talentms.repository.CategoryRepository;
 import com.velotrack.talentms.repository.CoachRepository;
 import com.velotrack.talentms.repository.CoachTeamRepository;
@@ -33,6 +34,7 @@ public class SkaterService {
     private final VenueRepository venueRepository;
     private final CoachRepository coachRepository;
     private final CoachTeamRepository coachTeamRepository;
+    private final TalentEvents events;
 
     @Transactional
     public SkaterResponse registerSkater(SkaterRegistrationRequest request) {
@@ -67,6 +69,7 @@ public class SkaterService {
                 .build();
 
         Skater savedSkater = skaterRepository.save(skater);
+        events.skaterSaved(savedSkater);
 
         SkaterResponse response = new SkaterResponse();
         response.setId(savedSkater.getId());

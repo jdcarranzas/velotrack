@@ -29,6 +29,11 @@ spring:
     init:
       mode: never
 
+velotrack:
+  pubsub:
+    enabled: ${PUBSUB_ENABLED:false}
+    project-id: ${GCP_PROJECT_ID:}
+
 server:
   port: ${PORT:8081}
 
