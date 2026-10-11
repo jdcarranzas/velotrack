@@ -29,3 +29,6 @@ test_dependencies.txt
 *.log
 .DS_Store
 Thumbs.db
+
+# Instrucciones locales de Claude Code
+CLAUDE.md
