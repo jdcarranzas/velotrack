@@ -7,28 +7,28 @@ Prototipo del microservicio de captura de sesiones para **HU03, HU04 y HU05**, b
 Requiere Docker Desktop con contenedores Linux y Docker Compose v2.
 
 1. Copiar `.env.example` como `.env`.
-2. Definir DB_PASSWORD y CAPTURE_PASSWORD (esta última de al menos 12 caracteres).
+2. Definir `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` (PostgreSQL externo, p. ej. Cloud SQL).
 3. Ejecutar:
 
 ```powershell
 docker compose up -d --build --wait
-curl.exe http://localhost:8080/actuator/health/readiness
+curl.exe http://localhost:8082/actuator/health/readiness
 ```
 
-La API escucha en http://localhost:8080. El usuario por defecto es `entrenador`; la contraseña es la que configuraste. El puerto de la BD no se publica. Los datos sobreviven a `docker compose down`; no usar `down -v` si se desea conservarlos.
+La API escucha en http://localhost:8082 y no requiere autenticación.
 
 ## Probar HU03, HU04 y HU05
 
-Crear una sesión con métricas, indicadores y observaciones (curl solicitará la contraseña):
+Crear una sesión con métricas, indicadores y observaciones:
 
 ```powershell
-curl.exe -u entrenador -H "Content-Type: application/json" --data-binary "@docs/sesion-completa.json" http://localhost:8080/api/v1/sessions
+curl.exe -H "Content-Type: application/json" --data-binary "@docs/sesion-completa.json" http://localhost:8082/api/v1/sessions
 ```
 
 Crear un borrador:
 
 ```powershell
-curl.exe -u entrenador -H "Content-Type: application/json" --data-binary "@docs/borrador.json" http://localhost:8080/api/v1/sessions
+curl.exe -H "Content-Type: application/json" --data-binary "@docs/borrador.json" http://localhost:8082/api/v1/sessions
 ```
 
 Conservar el `id` y la `version` devueltos. Para completar el borrador, enviar el cuerpo completo del ejemplo a `PUT /api/v1/sessions/{id}`, añadiendo `"version":0` (o la versión actual). PUT reemplaza todo el contenido editable; omitir un dato opcional lo limpia. El atleta no se puede cambiar.
@@ -38,7 +38,6 @@ Para editar solamente las observaciones:
 ```http
 PATCH /api/v1/sessions/{id}/observations
 Content-Type: application/json
-Authorization: Basic <credenciales>
 
 {"version":1,"observations":"El atleta recuperó el ritmo al final."}
 ```
@@ -49,7 +48,7 @@ Más ejemplos en [docs/api.http](docs/api.http).
 
 ## Contrato REST
 
-Todas las rutas `/api/v1/**` requieren HTTP Basic.
+Las rutas `/api/v1/**` son públicas, sin autenticación.
 
 | Método | Ruta | Resultado |
 |---|---|---|
@@ -64,7 +63,7 @@ Todas las rutas `/api/v1/**` requieren HTTP Basic.
 
 Los listados admiten `limit` (1–100; defecto 50) y `offset` (0–100000; defecto 0), orden descendente por fecha e id. Fechas ISO 8601 con zona horaria, por ejemplo `2026-09-01T00:00:00Z`; rango `[from,to)`. Al usar un offset como `-05:00` en la URL, codificar los caracteres especiales con el cliente HTTP.
 
-Errores: 400 validación, 401 credenciales ausentes/incorrectas, 403 atleta/equipo no autorizado, 404 sesión inexistente, 409 edición concurrente, 503 error de persistencia. Los errores de validación incluyen campos; nunca se devuelven contraseñas ni SQL.
+Errores: 400 validación, 403 atleta/equipo no autorizado, 404 sesión inexistente, 409 edición concurrente, 503 error de persistencia. Los errores de validación incluyen campos; nunca se devuelven contraseñas ni SQL.
 
 ## Reglas funcionales
 
@@ -93,6 +92,25 @@ Para ejecutar el JAR fuera de Compose, proporcionar DB_URL, DB_USER, DB_PASSWORD
 ## Estado de verificación
 
 33 pruebas aprobadas: 23 de reglas, API y servicio, y 10 de integración con TimescaleDB real. Migración Flyway, hypertable y persistencia verificadas; JAR generado. La imagen final de la aplicación y el despliegue AWS aún no se han ejecutado. Ver [detalle de validación](docs/VALIDACION.md).
+
+## Despliegue en GCP (Cloud Run + Cloud SQL)
+
+`cloudbuild.yaml` construye la imagen, la sube a Artifact Registry y despliega en Cloud Run conectando a Cloud SQL con el socket factory de Cloud SQL (no requiere IP pública autorizada).
+
+Prerrequisitos:
+- Repositorio de Artifact Registry `velotrack` en la región (`_REGION`, por defecto `us-east1`).
+- Secretos en Secret Manager: `talentms-db-user` y `talentms-db-password` (compartidos con talentms, misma instancia).
+- La cuenta de servicio de Cloud Run necesita `roles/cloudsql.client` y `roles/secretmanager.secretAccessor`; API Cloud SQL Admin habilitada.
+- Base de datos `capturedb` creada en la instancia (Flyway crea el esquema al primer arranque).
+
+Desde la raíz del repositorio:
+
+```powershell
+gcloud builds submit --config velotrack-captura/cloudbuild.yaml `
+  --substitutions=_CLOUDSQL_INSTANCE=PROYECTO:REGION:INSTANCIA .
+```
+
+Después, actualizar el secreto `captura-url` del gateway con la URL de Cloud Run del servicio.
 
 ## Diseño y AWS
 

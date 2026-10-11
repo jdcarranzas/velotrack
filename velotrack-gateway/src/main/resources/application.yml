@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: velotrack-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: talentms-route
+              uri: ${TALENTMS_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/venues/**,/api/teams/**,/api/categories/**,/api/skaters/**,/api/coaches/**
+            - id: talentms-health-route
+              uri: ${TALENTMS_URL:http://localhost:8081}
+              predicates:
+                - Path=/talentms/actuator/health/**
+              filters:
+                - StripPrefix=1
+            - id: captura-health-route
+              uri: ${CAPTURA_URL:http://localhost:8082}
+              predicates:
+                - Path=/captura/actuator/health/**
+              filters:
+                - StripPrefix=1
+            - id: captura-route
+              uri: ${CAPTURA_URL:http://localhost:8082}
+              predicates:
+                - Path=/api/v1/**
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: never
+    gateway:
+      access: read_only

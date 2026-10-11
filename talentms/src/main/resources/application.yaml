@@ -30,7 +30,7 @@ spring:
       mode: never
 
 server:
-  port: ${PORT:8080}
+  port: ${PORT:8081}
 
 management:
   endpoints:

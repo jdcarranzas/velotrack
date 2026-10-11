@@ -1,4 +1,4 @@
-@base = http://localhost:8080
+@base = http://localhost:8082
 # Sustituir el valor por base64 de usuario:contraseÃ±a para el cliente REST utilizado.
 @authorization = Basic REEMPLAZAR_BASE64
 @sessionId = REEMPLAZAR_UUID
