@@ -74,8 +74,23 @@ class SessionServiceTest {
         verify(repository, never()).update(any(), any());
     }
 
+    @Test void historyTranslatesSkaterIdToCaptureUuid() {
+        var found = session(UUID.randomUUID(), athlete, team);
+        when(repository.findAthleteUuid(7)).thenReturn(Optional.of(athlete));
+        when(repository.listByAthlete(athlete, date, date.plusSeconds(60), 50, 0)).thenReturn(java.util.List.of(found));
+        assertThat(service.history(7, date, date.plusSeconds(60), 50, 0)).containsExactly(found);
+    }
+
+    @Test void historyReturnsNotFoundWhenSkaterHasNoEquivalence() {
+        when(repository.findAthleteUuid(99)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.history(99, date, date.plusSeconds(60), 50, 0))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND));
+        verify(repository, never()).listByAthlete(any(), any(), any(), anyInt(), anyInt());
+    }
+
     @Test void rejectsInvertedRangeBeforeQuerying() {
-        assertThatThrownBy(() -> service.history(athlete, date.plusSeconds(1), date, 50, 0))
+        assertThatThrownBy(() -> service.history(1, date.plusSeconds(1), date, 50, 0))
                 .isInstanceOfSatisfying(ResponseStatusException.class,
                         e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST));
         verifyNoInteractions(repository);

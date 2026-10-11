@@ -32,7 +32,7 @@ Content-Type: application/json
 {"version":0,"observations":"Mejor recuperaciÃ³n al final de la sesiÃ³n."}
 
 ### Historial
-GET {{base}}/api/v1/athletes/33333333-3333-3333-3333-333333333333/sessions?from=2026-09-01T00:00:00Z&to=2026-10-01T00:00:00Z&limit=50&offset=0
+GET {{base}}/api/v1/athletes/7/sessions?from=2026-09-01T00:00:00Z&to=2026-10-01T00:00:00Z&limit=50&offset=0
 Authorization: {{authorization}}
 
 ### Agenda del entrenador (team=true para equipo)

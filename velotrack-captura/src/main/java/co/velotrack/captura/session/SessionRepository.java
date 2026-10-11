@@ -35,6 +35,25 @@ public class SessionRepository {
                 new MapSqlParameterSource("id", id), this::map).stream().findFirst();
     }
 
+    public Optional<UUID> findAthleteUuid(int skaterId) {
+        return jdbc.queryForList("""
+                SELECT uuid_captura FROM equivalencias_ids
+                WHERE entidad = 'atleta' AND id_talento = :skater
+                """, new MapSqlParameterSource("skater", skaterId), UUID.class).stream().findFirst();
+    }
+
+    public List<TrainingSession> listByAthlete(UUID athleteId, Instant from, Instant to, int limit, int offset) {
+        var params = new MapSqlParameterSource("athlete", athleteId)
+                .addValue("from", Timestamp.from(from)).addValue("to", Timestamp.from(to))
+                .addValue("limit", limit).addValue("offset", offset);
+        return jdbc.query(SELECT + """
+                 WHERE s.athlete_id = :athlete
+                 AND s.session_date >= :from AND s.session_date < :to
+                 AND m.measured_at >= :from AND m.measured_at < :to
+                 ORDER BY s.session_date DESC, s.id DESC LIMIT :limit OFFSET :offset
+                """, params, this::map);
+    }
+
     public List<TrainingSession> list(UUID teamId, List<UUID> athleteIds, Instant from, Instant to,
                                      SessionStatus status, UUID coachId, int limit, int offset) {
         String sql = SELECT + """

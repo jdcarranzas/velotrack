@@ -56,7 +56,7 @@ Las rutas `/api/v1/**` son públicas, sin autenticación.
 | GET | /api/v1/sessions/{id} | Consulta completa |
 | PUT | /api/v1/sessions/{id} | Reemplaza contenido; version obligatoria |
 | PATCH | /api/v1/sessions/{id}/observations | Cambia observaciones; version obligatoria |
-| GET | /api/v1/athletes/{athleteId}/sessions?from=...&to=... | Historial con métricas y observaciones |
+| GET | /api/v1/athletes/{athleteId}/sessions?from=...&to=... | Historial por id de skater (talentms), traducido vía `equivalencias_ids` |
 | GET | /api/v1/agenda?from=...&to=...&team=false | Sesiones PROGRAMADA del entrenador |
 | GET | /api/v1/agenda?from=...&to=...&team=true | Sesiones PROGRAMADA del equipo dentro de sus permisos |
 | GET | /actuator/health/readiness | Salud de aplicación y BD, sin detalles sensibles |

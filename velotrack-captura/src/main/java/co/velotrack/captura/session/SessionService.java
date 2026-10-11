@@ -64,10 +64,12 @@ public class SessionService {
         return get(id);
     }
 
-    public List<TrainingSession> history(UUID athleteId, Instant from, Instant to, int limit, int offset) {
-        authorizeAthlete(athleteId);
+    /** {@code skaterId} es el id numérico del patinador en talentms; se traduce al UUID de captura. */
+    public List<TrainingSession> history(int skaterId, Instant from, Instant to, int limit, int offset) {
         validateRange(from, to);
-        return repository.list(access.teamId(), List.of(athleteId), from, to, null, null, limit, offset);
+        UUID athleteId = repository.findAthleteUuid(skaterId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Patinador sin equivalencia en captura"));
+        return repository.listByAthlete(athleteId, from, to, limit, offset);
     }
 
     public List<TrainingSession> agenda(Instant from, Instant to, boolean team, int limit, int offset) {

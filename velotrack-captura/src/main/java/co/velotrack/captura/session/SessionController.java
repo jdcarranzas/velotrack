@@ -35,7 +35,7 @@ public class SessionController {
     }
 
     @GetMapping("/athletes/{athleteId}/sessions")
-    public List<TrainingSession> history(@PathVariable UUID athleteId,
+    public List<TrainingSession> history(@PathVariable @Positive int athleteId,
             @RequestParam Instant from, @RequestParam Instant to,
             @RequestParam(defaultValue = "50") @Min(1) @Max(100) int limit,
             @RequestParam(defaultValue = "0") @Min(0) @Max(100000) int offset) {

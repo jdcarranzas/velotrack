@@ -40,7 +40,12 @@ class SessionApiIT {
     @Autowired JdbcTemplate jdbc;
     @Autowired JsonMapper json;
 
-    @BeforeEach void clean() { jdbc.update("DELETE FROM training_session"); }
+    @BeforeEach void clean() {
+        jdbc.update("DELETE FROM training_session");
+        jdbc.update("DELETE FROM equivalencias_ids");
+        jdbc.update("INSERT INTO equivalencias_ids(entidad, uuid_captura, id_talento) VALUES ('atleta', ?, 7)",
+                UUID.fromString(ATHLETE));
+    }
 
     private String draft() {
         return """
@@ -72,7 +77,7 @@ class SessionApiIT {
                 .andExpect(jsonPath("$.physical.recoverySeconds").value(120))
                 .andExpect(jsonPath("$.observations").value("Viento fuerte"))
                 .andExpect(jsonPath("$.coachId").value("11111111-1111-1111-1111-111111111111"));
-        mvc.perform(get("/api/v1/athletes/" + ATHLETE + "/sessions")                .param("from", "2026-09-01T00:00:00Z").param("to", "2026-10-01T00:00:00Z"))
+        mvc.perform(get("/api/v1/athletes/7/sessions")                .param("from", "2026-09-01T00:00:00Z").param("to", "2026-10-01T00:00:00Z"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(id));
     }
 
