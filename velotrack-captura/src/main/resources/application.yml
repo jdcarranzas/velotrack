@@ -35,6 +35,13 @@ management:
       group:
         readiness:
           include: readinessState,db
+velotrack:
+  pubsub:
+    enabled: ${PUBSUB_ENABLED:false}
+    project-id: ${GCP_PROJECT_ID:}
+    topics:
+      training-session: ${PUBSUB_TOPIC_TRAINING_SESSION:velotrack-training-session}
+      session-metrics: ${PUBSUB_TOPIC_SESSION_METRICS:velotrack-session-metrics}
 prototype:
   access:
     coach-id: ${COACH_ID:11111111-1111-1111-1111-111111111111}

@@ -34,6 +34,7 @@ steps:
       - --service-account=${_RUN_SERVICE_ACCOUNT}
       - --add-cloudsql-instances=${_CLOUDSQL_INSTANCE}
       - --set-env-vars=SPRING_DATASOURCE_URL=jdbc:postgresql:///${_DB_NAME}?cloudSqlInstance=${_CLOUDSQL_INSTANCE}&socketFactory=com.google.cloud.sql.postgres.SocketFactory
+      - --update-env-vars=PUBSUB_ENABLED=true,GCP_PROJECT_ID=$PROJECT_ID
       - --update-secrets=SPRING_DATASOURCE_USERNAME=talentms-db-user:latest,SPRING_DATASOURCE_PASSWORD=talentms-db-password:latest
       - --allow-unauthenticated
     id: deploy-run

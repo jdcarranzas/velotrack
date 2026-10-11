@@ -18,10 +18,11 @@ class SessionServiceTest {
     private final UUID coach = UUID.randomUUID();
     private final UUID team = UUID.randomUUID();
     private final Instant date = Instant.parse("2026-09-27T15:00:00Z");
+    private final SessionEvents events = mock(SessionEvents.class);
     private SessionService service;
 
     @BeforeEach void setup() {
-        service = new SessionService(repository, new PrototypeAccess(coach, team, Set.of(athlete)));
+        service = new SessionService(repository, new PrototypeAccess(coach, team, Set.of(athlete)), events);
     }
 
     private TrainingSession session(UUID id, UUID athleteId, UUID teamId) {
@@ -72,6 +73,22 @@ class SessionServiceTest {
                 new SessionRequest(athlete, date, SessionStatus.BORRADOR, null, null, null, null)))
                 .isInstanceOf(ResponseStatusException.class);
         verify(repository, never()).update(any(), any());
+    }
+
+    @Test void publishesSavedSessionAfterCreate() {
+        var saved = session(UUID.randomUUID(), athlete, team);
+        when(repository.find(any())).thenReturn(Optional.of(saved));
+        var request = new SessionRequest(athlete, date, SessionStatus.BORRADOR, null, null, null, null);
+        assertThat(service.create(request)).isSameAs(saved);
+        verify(events).sessionSaved(saved);
+    }
+
+    @Test void doesNotPublishWhenObservationVersionConflicts() {
+        UUID id = UUID.randomUUID();
+        when(repository.find(id)).thenReturn(Optional.of(session(id, athlete, team)));
+        when(repository.updateObservations(id, 0, "Cambio")).thenReturn(false);
+        assertThatThrownBy(() -> service.observations(id, 0, "Cambio")).isInstanceOf(ResponseStatusException.class);
+        verifyNoInteractions(events);
     }
 
     @Test void historyTranslatesSkaterIdToCaptureUuid() {

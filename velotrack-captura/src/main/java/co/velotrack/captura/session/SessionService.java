@@ -17,10 +17,12 @@ public class SessionService {
     private static final Logger LOG = LoggerFactory.getLogger(SessionService.class);
     private final SessionRepository repository;
     private final PrototypeAccess access;
+    private final SessionEvents events;
 
-    public SessionService(SessionRepository repository, PrototypeAccess access) {
+    public SessionService(SessionRepository repository, PrototypeAccess access, SessionEvents events) {
         this.repository = repository;
         this.access = access;
+        this.events = events;
     }
 
     @Transactional
@@ -31,7 +33,7 @@ public class SessionService {
         UUID id = UUID.randomUUID();
         repository.insert(id, access.coachId(), access.teamId(), request);
         LOG.info("event=session_created sessionId={} coachId={}", id, access.coachId());
-        return get(id);
+        return publishSaved(get(id));
     }
 
     public TrainingSession get(UUID id) {
@@ -53,7 +55,7 @@ public class SessionService {
         SessionRules.validate(request);
         if (!repository.update(id, request)) conflict();
         LOG.info("event=session_updated sessionId={} coachId={}", id, access.coachId());
-        return get(id);
+        return publishSaved(get(id));
     }
 
     @Transactional
@@ -61,7 +63,12 @@ public class SessionService {
         get(id);
         if (!repository.updateObservations(id, version, observations)) conflict();
         LOG.info("event=observations_updated sessionId={} coachId={}", id, access.coachId());
-        return get(id);
+        return publishSaved(get(id));
+    }
+
+    private TrainingSession publishSaved(TrainingSession saved) {
+        events.sessionSaved(saved);
+        return saved;
     }
 
     /** {@code skaterId} es el id numérico del patinador en talentms; se traduce al UUID de captura. */
