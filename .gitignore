@@ -1,0 +1,31 @@
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Build output
+target/
+build/
+.gradle/
+out/
+*.class
+*.jar
+*.jar.original
+!gradle/wrapper/gradle-wrapper.jar
+
+# Generated dependency dumps
+all_dependencies*.txt
+dependencies.txt
+test_dependencies.txt
+
+# Logs / OS
+*.log
+.DS_Store
+Thumbs.db
