@@ -42,3 +42,13 @@ Abre http://localhost:3000.
 - [CLAUDE.md](CLAUDE.md): arquitectura, convenciones y comandos.
 - [docs/api-contract.md](docs/api-contract.md): endpoints que el portal espera del backend.
 - [docs/figma-notes.md](docs/figma-notes.md): notas del diseño de Figma.
+
+## Despliegue en Cloud Run
+
+`Dockerfile` arma el servidor standalone de Next y `cloudbuild.yaml` lo construye, lo sube a Artifact Registry (`velotrack`) y lo despliega como el servicio `velotrack-portal` en `us-east1`. Desde la raíz del repositorio:
+
+```bash
+gcloud builds submit --config velotrack-portal/cloudbuild.yaml --project <PROJECT_ID> .
+```
+
+`GATEWAY_URL` y `NEXT_PUBLIC_COACH_ID` se fijan al construir la imagen (substitutions `_GATEWAY_URL` y `_COACH_ID`); para cambiarlos hay que volver a desplegar.

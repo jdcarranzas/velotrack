@@ -9,6 +9,8 @@ const GATEWAY_URL = (
 ).replace(/\/+$/, "");
 
 const nextConfig: NextConfig = {
+  // Servidor autocontenido para la imagen de Docker (Cloud Run)
+  output: "standalone",
   typescript: {
     ignoreBuildErrors: false,
   },
